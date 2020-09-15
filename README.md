@@ -10,10 +10,16 @@ package whatever
 
 import (
 	"github.com/dispatchframework/longroutine"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
 type reconciler struct {
+	upgrader
 	RoutineStarter longroutine.SingleStarter
+}
+
+type upgrader interface{
+	Upgrade()
 }
 
 func NewReconciler() *reconciler {
@@ -22,13 +28,14 @@ func NewReconciler() *reconciler {
 	}
 }
 
-func (r *reconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
+func (r *reconciler) Reconcile(req reconcile.Request) (reconcile.Result, error) {
+	var upgradeID string	
 	// skip ...	
 
 	// starting a long running go routine, e.g. a ClusterAPI cluster upgrade
 	// if a routine is already running for this upgradeID, the new one will not be started
 	r.RoutineStarter.StartSingle(upgradeID, func() {
-		upgrader.Upgrade()
+		r.upgrader.Upgrade()
 	})
 
 	// skip ...
